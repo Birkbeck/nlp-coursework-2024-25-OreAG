@@ -2,8 +2,7 @@
 
 # Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
 
-import nltk
-import spacy
+import pandas as pd
 from pathlib import Path
 
 
@@ -44,12 +43,26 @@ def read_novels(novels_dir= "texts/novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
     records = []
+    novels_path = Path(novels_dir)
 
-    for filename in os.listdir(novels_dir):
-        if filename.endswith('.txt'):
-            try:
-                name = filename[:-4]
-                parts = name.split('-')
+    for file in novels_path.glob('*.txt'):
+        try:
+            parts = file.stem.split('-')
+            year = int(parts[-1])
+            author = parts[-2]
+            title = '-'.join(parts[:-2])
+            text = file.read_text(encoding= 'utf-8')
+
+            records.append({'text': text, 'title': title, 'author': author, 'year': year})
+
+        except Exception as e:
+            print(f"Error processing {file.name}: {e}")
+    df = pd.DataFrame(records)
+    df = df.sort_values(by='year').reset_index(drop=True)
+    return df
+
+
+
     pass
 
 
