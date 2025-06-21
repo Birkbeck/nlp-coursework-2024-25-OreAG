@@ -40,9 +40,16 @@ def count_syl(word, d):
     pass
 
 
-def read_novels(path=Path.cwd() / "texts" / "novels"):
+def read_novels(novels_dir= "texts/novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
+    records = []
+
+    for filename in os.listdir(novels_dir):
+        if filename.endswith('.txt'):
+            try:
+                name = filename[:-4]
+                parts = name.split('-')
     pass
 
 
