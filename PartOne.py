@@ -4,6 +4,12 @@
 
 import pandas as pd
 from pathlib import Path
+import nltk
+nltk.download('punkt')
+
+from nltk.tokenize import word_tokenize
+import string
+
 
 
 nlp = spacy.load("en_core_web_sm")
@@ -74,8 +80,25 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    pass
+    ttr_dict = {}
+    for _, row in df.iterrows():
+        title = row['title']
+        text = row['text']
 
+        #tokenize
+        tokens = word_tokenize(text)
+
+        #take away the punctuations and make texts lowercase
+        words= [token.lower() for token in tokens if token.isalpha()]
+
+        #Calculate TTR
+        types = set(words)
+        ttr = len(types) /len(words) if words else 0
+
+        ttr_dict[title] = ttr
+
+    return ttr_dict
+    pass
 
 def get_ttrs(df):
     """helper function to add ttr to a dataframe"""
