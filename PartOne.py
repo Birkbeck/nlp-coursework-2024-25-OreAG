@@ -48,7 +48,7 @@ def count_syl(word, d):
     """
     word = word.lower()
     if word in cmu_dict:
-        #Return min syllable count across all pronounciations
+        #Return min syllable count across all pronunciations
         return min([len([syl  for syl in pron if syl[-1].isdigit()]) for pron in cmu_dict[word]])
 
     else:
@@ -64,6 +64,19 @@ def flesch_kincaid(df):
         #tokenize into sentences and words
         sentences = sent_tokenize(text)
         words = [word.lower() for word in word_tokenize(text) if word.isalpha()]
+
+        #Basic counts
+        num_sentences = len(sentences)
+        num_words = len(words)
+        num_syllables = sum(count_syl(word) for word in words)
+
+        if num_sentences == 0 or num_words == 0:
+            fk_scores[title]= 0
+            continue
+        #Flesch-kincaid grade level formula
+        score = 0.39 * (num_words/ num_sentences) + 11.8 * (num_syllables/ num_words) - 15.59
+        fk_scores[title] = round(score,2)
+    return fk_scores
 
 def read_novels(novels_dir= "texts/novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
