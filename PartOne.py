@@ -5,15 +5,19 @@
 import pandas as pd
 from pathlib import Path
 import nltk
-nltk.download('punkt')
-
-from nltk.tokenize import word_tokenize
+from nltk.corpus import cmudict
+from nltk.tokenize import word_tokenize, sent_tokenize
 import string
 
 
+nltk.download('punkt')
+nltk.download('cmudict')
 
-nlp = spacy.load("en_core_web_sm")
-nlp.max_length = 2000000
+cmu_dict = cmudict.dict()
+
+
+#nlp = spacy.load("en_core_web_sm")
+#nlp.max_length = 2000000
 
 
 
@@ -42,8 +46,24 @@ def count_syl(word, d):
     Returns:
         int: The number of syllables in the word.
     """
-    pass
+    word = word.lower()
+    if word in cmu_dict:
+        #Return min syllable count across all pronounciations
+        return min([len([syl  for syl in pron if syl[-1].isdigit()]) for pron in cmu_dict[word]])
 
+    else:
+        return 1
+    pass
+def flesch_kincaid(df):
+    fk_scores = {}
+
+    for _, row in df.iterrows():
+        title = row['title']
+        text = row['text']
+
+        #tokenize into sentences and words
+        sentences = sent_tokenize(text)
+        words = [word.lower() for word in word_tokenize(text) if word.isalpha()]
 
 def read_novels(novels_dir= "texts/novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
