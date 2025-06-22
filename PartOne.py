@@ -23,27 +23,19 @@ nlp = spacy.load("en_core_web_sm")
 nlp.max_length = 2000000
 
 def read_novels(novels_dir= "p1_texts/novels"):
-    records = []
     novels_path = Path(novels_dir)
-    print(f"Looking in folder:{novels_path.resolve()}")
-
-    #list all txt files found
     all_files = list(novels_path.glob('*.txt'))
+    records = []
+
     if not all_files:
-        print("No files found")
-    else:
-        print("Found the following files:")
-        for f in all_files:
-            print(f.name)
+        print("No txt files found")
+        return pd.DataFrame()
 
     for file in all_files:
         try:
-            print(f"Processing file: {file.name}")
             parts = file.stem.replace("_"," ").split('-')
-            print(f"Split parts:{parts}")
-
             if len(parts) <3:
-                raise ValueError("Filename does not contain title author year format")
+                continue #skip files that don't match format
             year = int(parts[-1])
             author = parts[-2]
             title = '-'.join(parts[:-2])
@@ -51,14 +43,12 @@ def read_novels(novels_dir= "p1_texts/novels"):
             records.append({'text': text, 'title': title, 'author': author, 'year': year})
         except Exception as e:
             print(f"Error processing {file.name}: {e}")
+            continue #skip files with issues
 
     df = pd.DataFrame(records)
-    print("\nDataFrame preview:")
-    print(df.head())
     if 'year' in df.columns:
         df = df.sort_values(by= 'year').reset_index(drop=True)
-    else:
-        print("No valid data was parsed- check filename format and folder path")
+
     return df
 def count_syl(word, d):
     word = word.lower()
