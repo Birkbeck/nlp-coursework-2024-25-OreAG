@@ -10,6 +10,7 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 import string
 import spacy, pickle
 import math
+from collections import Counter
 
 
 nltk.download('punkt')
@@ -21,7 +22,27 @@ cmu_dict = cmudict.dict()
 nlp = spacy.load("en_core_web_sm")
 nlp.max_length = 2000000
 
+def read_novels(novels_dir= "texts/novels"):
+    """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
+    author, and year"""
+    records = []
+    novels_path = Path(novels_dir)
 
+    for file in novels_path.glob('*.txt'):
+        try:
+            parts = file.stem.split('-')
+            year = int(parts[-1])
+            author = parts[-2]
+            title = '-'.join(parts[:-2])
+            text = file.read_text(encoding= 'utf-8')
+
+            records.append({'text': text, 'title': title, 'author': author, 'year': year})
+
+        except Exception as e:
+            print(f"Error processing {file.name}: {e}")
+    df = pd.DataFrame(records)
+    df = df.sort_values(by='year').reset_index(drop=True)
+    return df
 
 def fk_level(text, d):
     """Returns the Flesch-Kincaid Grade Level of a text (higher grade is more difficult).
@@ -80,27 +101,7 @@ def flesch_kincaid(df):
         fk_scores[title] = round(score,2)
     return fk_scores
 
-def read_novels(novels_dir= "texts/novels"):
-    """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
-    author, and year"""
-    records = []
-    novels_path = Path(novels_dir)
 
-    for file in novels_path.glob('*.txt'):
-        try:
-            parts = file.stem.split('-')
-            year = int(parts[-1])
-            author = parts[-2]
-            title = '-'.join(parts[:-2])
-            text = file.read_text(encoding= 'utf-8')
-
-            records.append({'text': text, 'title': title, 'author': author, 'year': year})
-
-        except Exception as e:
-            print(f"Error processing {file.name}: {e}")
-    df = pd.DataFrame(records)
-    df = df.sort_values(by='year').reset_index(drop=True)
-    return df
 
 
 
@@ -199,12 +200,21 @@ def subjects_by_verb_pmi(doc, target_verb):
 
 def subjects_by_verb_count(doc, verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
+    subjects = []
+    for token in doc:
+        if token.lemma_ == verb and token.pos_ == "VERB":
+            for child in token.children:
+                if child.dep_ in ("nsubj", "nsubjpass"):
+                    subjects.append(child.text.lower())
+    return Counter(subjects).most_common(10)
     pass
 
 
 
 def adjective_counts(doc):
     """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
+    adjectives = [token.text.lower() for token in doc if token.pos_ == "ADJ"]
+    return Counter(adjectives).most_common(10)
     pass
 
 
