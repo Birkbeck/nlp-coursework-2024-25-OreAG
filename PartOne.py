@@ -61,29 +61,6 @@ def fk_level(text, d):
     score = 0.39 * (num_words /num_sentences) + 11.8 * (num_syllables/ num_words) - 15.59
     return round(score, 2)
 
-
-
-
-def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
-    """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
-    the resulting  DataFrame to a pickle file"""
-    parsed_docs = []
-
-    for text in df['text']:
-        if len(text) > nlp.max_length:
-            print("Warning: text too long")
-            text = text[:nlp.max_length]
-            doc = nlp(text)
-            parsed_docs.append(doc)
-    df['parsed'] = parsed_docs
-
-    pickle_path = store_path/ out_name
-    with open(pickle_path, 'wb') as f:
-        pickle.dump(df, f)
-    return df
-    pass
-
-
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
     ttr_dict = {}
@@ -121,6 +98,29 @@ def get_fks(df):
     for i, row in df.iterrows():
         results[row["title"]] = round(fk_level(row["text"], cmudict), 4)
     return results
+
+
+def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
+    """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
+    the resulting  DataFrame to a pickle file"""
+    parsed_docs = []
+
+    for text in df['text']:
+        if len(text) > nlp.max_length:
+            print("Warning: text too long")
+            text = text[:nlp.max_length]
+            doc = nlp(text)
+            parsed_docs.append(doc)
+    df['parsed'] = parsed_docs
+
+    pickle_path = store_path/ out_name
+    with open(pickle_path, 'wb') as f:
+        pickle.dump(df, f)
+    return df
+    pass
+
+
+
 
 
 def subjects_by_verb_pmi(doc, target_verb):
