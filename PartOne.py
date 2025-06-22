@@ -22,13 +22,28 @@ cmu_dict = cmudict.dict()
 nlp = spacy.load("en_core_web_sm")
 nlp.max_length = 2000000
 
-def read_novels(novels_dir= "texts/novels"):
+def read_novels(novels_dir= "p1_texts/novels"):
     records = []
     novels_path = Path(novels_dir)
+    print(f"Looking in folder:{novels_path.resolve()}")
 
-    for file in novels_path.glob('*.txt'):
+    #list all txt files found
+    all_files = list(novels_path.glob('*.txt'))
+    if not all_files:
+        print("No files found")
+    else:
+        print("Found the following files:")
+        for f in all_files:
+            print(f.name)
+
+    for file in all_files:
         try:
-            parts = file.stem.split('-')
+            print(f"Processing file: {file.name}")
+            parts = file.stem.replace("_"," ").split('-')
+            print(f"Split parts:{parts}")
+
+            if len(parts) <3:
+                raise ValueError("Filename does not contain title author year format")
             year = int(parts[-1])
             author = parts[-2]
             title = '-'.join(parts[:-2])
@@ -38,7 +53,12 @@ def read_novels(novels_dir= "texts/novels"):
             print(f"Error processing {file.name}: {e}")
 
     df = pd.DataFrame(records)
-    df = df.sort_values(by='year').reset_index(drop=True)
+    print("\nDataFrame preview:")
+    print(df.head())
+    if 'year' in df.columns:
+        df = df.sort_values(by= 'year').reset_index(drop=True)
+    else:
+        print("No valid data was parsed- check filename format and folder path")
     return df
 def count_syl(word, d):
     word = word.lower()
@@ -70,7 +90,7 @@ def nltk_ttr(text):
         return len(types) /len(words) if words else 0
 
 
-def get_ttr(df):
+def get_ttrs(df):
     return {row["title"]: nltk_ttr(row["text"]) for _, row in df.iterrows()}
 
 
@@ -96,7 +116,6 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     return df
 
 def subjects_by_verb_count(doc, verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
     subjects = []
     for token in doc:
         if token.lemma_ == verb and token.pos_ == "VERB":
@@ -104,12 +123,9 @@ def subjects_by_verb_count(doc, verb):
                 if child.dep_ in ("nsubj", "nsubjpass"):
                     subjects.append(child.text.lower())
     return Counter(subjects).most_common(10)
-    pass
-
 
 def subjects_by_verb_pmi(doc, target_verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    total_tokens = len([token for token in doc if token.is_aplha])
+    total_tokens = len([token for token in doc if token.is_alpha])
     subj_counter = Counter()
     subj_joint_counter = Counter()
     verb_counter = 0
@@ -134,38 +150,28 @@ def subjects_by_verb_pmi(doc, target_verb):
     sorted_pmi = sorted(pmi_scores.items(), key=lambda x: x[1], reverse=True)
     return sorted_pmi[:10]
 
-    pass
-
-
-
-
-
-
 
 def adjective_counts(doc):
-    """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
     adjectives = [token.text.lower() for token in doc if token.pos_ == "ADJ"]
     return Counter(adjectives).most_common(10)
-    pass
 
+def object_counts(doc):
+    objects = [token.text.lower() for token in doc if token.dep_ =="dobj"]
+    return Counter(objects).most_common(10)
 
 
 if __name__ == "__main__":
-    """
-    uncomment the following lines to run the functions once you have completed them
-    """
-    #path = Path.cwd() / "p1-texts" / "novels"
-    #print(path)
-    #df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    #print(df.head())
-    #nltk.download("cmudict")
-    #parse(df)
-    #print(df.head())
-    #print(get_ttrs(df))
-    #print(get_fks(df))
-    #df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
-    # print(adjective_counts(df))
-    """ 
+    path = Path.cwd() / "p1_texts" / "novels"
+    print(path)
+    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    print(df.head())
+    parse(df)
+    print(df.head())
+    print(get_ttrs(df))
+    print(get_fks(df))
+    df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
+    print(adjective_counts(df.loc[0, "parsed"]))
+
     for i, row in df.iterrows():
         print(row["title"])
         print(subjects_by_verb_count(row["parsed"], "hear"))
@@ -175,5 +181,5 @@ if __name__ == "__main__":
         print(row["title"])
         print(subjects_by_verb_pmi(row["parsed"], "hear"))
         print("\n")
-    """
+
 
