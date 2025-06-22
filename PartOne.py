@@ -8,6 +8,7 @@ import nltk
 from nltk.corpus import cmudict
 from nltk.tokenize import word_tokenize, sent_tokenize
 import string
+import spacy, pickle
 
 
 nltk.download('punkt')
@@ -16,8 +17,8 @@ nltk.download('cmudict')
 cmu_dict = cmudict.dict()
 
 
-#nlp = spacy.load("en_core_web_sm")
-#nlp.max_length = 2000000
+nlp = spacy.load("en_core_web_sm")
+nlp.max_length = 2000000
 
 
 
@@ -108,6 +109,20 @@ def read_novels(novels_dir= "texts/novels"):
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
     the resulting  DataFrame to a pickle file"""
+    parsed_docs = []
+
+    for text in df['text']:
+        if len(text) > nlp.max_length:
+            print("Warning: text too long")
+            text = text[:nlp.max_length]
+            doc = nlp(text)
+            parsed_docs.append(doc)
+    df['parsed'] = parsed_docs
+
+    pickle_path = store_path/ out_name
+    with open(pickle_path, 'wb') as f:
+        pickle.dump(df, f)
+    return df
     pass
 
 
