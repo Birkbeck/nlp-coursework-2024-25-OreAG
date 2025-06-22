@@ -1,1 +1,29 @@
-Answers to the text questions go here.
+Answers to the text questions go here:
+
+
+When is the Flesch Kincaid score *not* a valid, robust or reliable estimator of 4
+text difficulty? Give two conditions. (Text answer, 200 words maximum).
+
+Although, widely used, the Flesch-Kincaid score doesn't always reflect the difficulty of a text. For instance,
+some texts might use relatively simple sentence structures but still contain technical or highly specialised vocabulary.
+
+  This means that a medical or legal document can get an 'easy score' according to the formula if the sentences are
+short and the words meet the syllable count criteria. However a non-medical professional is likely to struggle to
+understand it (Benjamin , 2012)
+
+Another issue is how the formula handles text that don't follow the standard grammar or syntax. These include literary
+texts (older versions) or works that creatively play around with sentence boundaries or structure. Scenarios like
+these are likely to confuse the algorithm. This can make it overestimate or underestimate how difficult the text really
+is to read( Collins-Thompson, 2014)
+
+In both cases, the formula seems to miss what actually makes a text complex (e.g. context or familiarity with the subject matter)
+These are often the real barriers to comprehension which the Flesch-Kincaid method doesn't account for(Dubay, 2004)
+
+References
+Benjamin, R.G., 2012. Reconstructing readability. Recent developments and recommendations in the analysis of text difficulty.
+Educational Psychology Review,24(1), pp.63-88
+
+Collins-Thompson,K, 2014. Computational assessment og text readability:A survey of current and future research,
+ITL- International Journal of Applied Linguistics, 165(20, pp.97-135
+
+Dubay, WH 2004. The Principles of Readability. Costa Mesa, CA:Impact Information
