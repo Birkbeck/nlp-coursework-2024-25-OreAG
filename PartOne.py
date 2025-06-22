@@ -9,6 +9,7 @@ from nltk.corpus import cmudict
 from nltk.tokenize import word_tokenize, sent_tokenize
 import string
 import spacy, pickle
+import math
 
 
 nltk.download('punkt')
@@ -167,6 +168,31 @@ def get_fks(df):
 
 def subjects_by_verb_pmi(doc, target_verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
+    total_tokens = len([token for token in doc if token.is_aplha])
+    subj_counter = Counter()
+    subj_joint_counter = Counter()
+    verb_counter = 0
+
+    for token in doc:
+        if token.lemma_ == target_verb and token.pos_ == "VERB":
+            verb_counter += 1
+            for child in token.children:
+                if child.dep_ in ("nsubj", "nsubjpass"):
+                    subj = child.text.lower()
+                    subj_counter[subj] +=1
+                    subj_joint_counter[subj] +=1
+    pmi_scores = {}
+    for subj, joint_count in subj_joint_counter.items():
+        p_subj = subj_counter[subj] / total_tokens
+        p_verb = verb_counter /total_tokens
+        p_joint = joint_count / total_tokens
+        if p_subj * p_verb > 0:
+            pmi = math.log2(p_joint/ (p_subj * p_verb))
+            pmi_scores[subj] = pmi
+
+    sorted_pmi = sorted(pmi_scores.items(), key=lambda x: x[1], reverse=True)
+    return sorted_pmi[:10]
+
     pass
 
 
