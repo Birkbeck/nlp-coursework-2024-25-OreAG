@@ -23,8 +23,6 @@ nlp = spacy.load("en_core_web_sm")
 nlp.max_length = 2000000
 
 def read_novels(novels_dir= "texts/novels"):
-    """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
-    author, and year"""
     records = []
     novels_path = Path(novels_dir)
 
@@ -35,77 +33,35 @@ def read_novels(novels_dir= "texts/novels"):
             author = parts[-2]
             title = '-'.join(parts[:-2])
             text = file.read_text(encoding= 'utf-8')
-
             records.append({'text': text, 'title': title, 'author': author, 'year': year})
-
         except Exception as e:
             print(f"Error processing {file.name}: {e}")
+
     df = pd.DataFrame(records)
     df = df.sort_values(by='year').reset_index(drop=True)
     return df
+def count_syl(word, d):
+    word = word.lower()
+    if word in d:
+        #Return min syllable count across all pronunciations
+        return min([len([syl  for syl in pron if syl[-1].isdigit()]) for pron in d[word]])
+    return 1
+
 
 def fk_level(text, d):
-    """Returns the Flesch-Kincaid Grade Level of a text (higher grade is more difficult).
-    Requires a dictionary of syllables per word.
+    sentences = sent_tokenize(text)
+    words =[w.lower() for w in word_tokenize (text) if w.isalpha()]
+    num_sentences = len(sentences)
+    num_words = len(words)
+    num_syllables = sum(count_syl(w,d) for w in words)
 
-    Args:
-        text (str): The text to analyze.
-        d (dict): A dictionary of syllables per word.
+    if num_sentences == 0 or num_words ==0:
+        return 0
 
-    Returns:
-        float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
-    """
-    pass
-
-
-def count_syl(word, d):
-    """Counts the number of syllables in a word given a dictionary of syllables per word.
-    if the word is not in the dictionary, syllables are estimated by counting vowel clusters
-
-    Args:
-        word (str): The word to count syllables for.
-        d (dict): A dictionary of syllables per word.
-
-    Returns:
-        int: The number of syllables in the word.
-    """
-    word = word.lower()
-    if word in cmu_dict:
-        #Return min syllable count across all pronunciations
-        return min([len([syl  for syl in pron if syl[-1].isdigit()]) for pron in cmu_dict[word]])
-
-    else:
-        return 1
-    pass
-def flesch_kincaid(df):
-    fk_scores = {}
-
-    for _, row in df.iterrows():
-        title = row['title']
-        text = row['text']
-
-        #tokenize into sentences and words
-        sentences = sent_tokenize(text)
-        words = [word.lower() for word in word_tokenize(text) if word.isalpha()]
-
-        #Basic counts
-        num_sentences = len(sentences)
-        num_words = len(words)
-        num_syllables = sum(count_syl(word) for word in words)
-
-        if num_sentences == 0 or num_words == 0:
-            fk_scores[title]= 0
-            continue
-        #Flesch-kincaid grade level formula
-        score = 0.39 * (num_words/ num_sentences) + 11.8 * (num_syllables/ num_words) - 15.59
-        fk_scores[title] = round(score,2)
-    return fk_scores
+    score = 0.39 * (num_words /num_sentences) + 11.8 * (num_syllables/ num_words) - 15.59
+    return round(score, 2)
 
 
-
-
-
-    pass
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
