@@ -62,65 +62,49 @@ def fk_level(text, d):
     return round(score, 2)
 
 def nltk_ttr(text):
-    """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    ttr_dict = {}
-    for _, row in df.iterrows():
-        title = row['title']
-        text = row['text']
-
         #tokenize
         tokens = word_tokenize(text)
-
-        #take away the punctuations and make texts lowercase
+         #take away the punctuations and make texts lowercase
         words= [token.lower() for token in tokens if token.isalpha()]
-
-        #Calculate TTR
         types = set(words)
-        ttr = len(types) /len(words) if words else 0
+        return len(types) /len(words) if words else 0
 
-        ttr_dict[title] = ttr
 
-    return ttr_dict
-    pass
-
-def get_ttrs(df):
-    """helper function to add ttr to a dataframe"""
-    results = {}
-    for i, row in df.iterrows():
-        results[row["title"]] = nltk_ttr(row["text"])
-    return results
+def get_ttr(df):
+    return {row["title"]: nltk_ttr(row["text"]) for _, row in df.iterrows()}
 
 
 def get_fks(df):
-    """helper function to add fk scores to a dataframe"""
-    results = {}
-    cmudict = nltk.corpus.cmudict.dict()
-    for i, row in df.iterrows():
-        results[row["title"]] = round(fk_level(row["text"], cmudict), 4)
-    return results
+    return {row["title"]: fk_level(row["text"]) for _, row in df.iterrows()}
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
-    """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
-    the resulting  DataFrame to a pickle file"""
     parsed_docs = []
 
     for text in df['text']:
         if len(text) > nlp.max_length:
             print("Warning: text too long")
             text = text[:nlp.max_length]
-            doc = nlp(text)
-            parsed_docs.append(doc)
+        parsed_docs.append(nlp(text))
+
     df['parsed'] = parsed_docs
 
-    pickle_path = store_path/ out_name
-    with open(pickle_path, 'wb') as f:
+    store_path.mkdir(parents=True, exist_ok=True)
+    with open(store_path/out_name, 'wb') as f:
         pickle.dump(df, f)
+
     return df
+
+def subjects_by_verb_count(doc, verb):
+    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
+    subjects = []
+    for token in doc:
+        if token.lemma_ == verb and token.pos_ == "VERB":
+            for child in token.children:
+                if child.dep_ in ("nsubj", "nsubjpass"):
+                    subjects.append(child.text.lower())
+    return Counter(subjects).most_common(10)
     pass
-
-
-
 
 
 def subjects_by_verb_pmi(doc, target_verb):
@@ -154,16 +138,7 @@ def subjects_by_verb_pmi(doc, target_verb):
 
 
 
-def subjects_by_verb_count(doc, verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    subjects = []
-    for token in doc:
-        if token.lemma_ == verb and token.pos_ == "VERB":
-            for child in token.children:
-                if child.dep_ in ("nsubj", "nsubjpass"):
-                    subjects.append(child.text.lower())
-    return Counter(subjects).most_common(10)
-    pass
+
 
 
 
