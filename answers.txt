@@ -9,7 +9,7 @@ Although, widely used, the Flesch-Kincaid score doesn't always reflect the diffi
 some texts might use relatively simple sentence structures but still contain technical or highly specialised vocabulary.
 
   This means that a medical or legal document can get an 'easy score' according to the formula if the sentences are
-short and the words meet the syllable count criteria. However a non-medical professional is likely to struggle to
+short and the words meet the syllable count criteria. However, a non-medical professional is likely to struggle to
 understand it (Benjamin , 2012)
 
 Another issue is how the formula handles text that don't follow the standard grammar or syntax. These include literary
