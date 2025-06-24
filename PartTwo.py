@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -48,14 +49,30 @@ print("SVM Classification Report:\n", classification_report(y_test, svm_preds))
 
 #ngram
 
-vectorizer_ngram =TfidfVectorizer(stop_words='english', max_features=3000, ngram_range=1,3)
+vectorizer_ngram =TfidfVectorizer(stop_words='english', max_features=3000, ngram_range=(1,3))
 X_ngram = vectorizer_ngram.fit_transform(df['speech'])
 
 X_train_ng, X_test_ng, y_train_ng, y_test_ng = train_test_split(X_ngram, y, test_size=0.2, random_state=26,stratify=y)
 
-#train and print again
+#train and print again- ramdom forest with ngrams
 rf_ng = RandomForestClassifier(n_estimators=300, random_state=26)
 rf_ng.fit(X_train_ng, y_train_ng)
 rf_ng_preds = rf_ng.predict(X_test_ng)
 
 print("Random Forest(n_gram Classification Report:\n", classification_report(y_test_ng, rf_ng_preds))
+
+#custom tokenizer
+def custom_tokenizer(text):
+    text = text.lower()
+    tokens = re.findall(r'\b[a-z]{3,}\b', text)
+    return tokens
+
+vectorizer_custom = TfidfVectorizer(tokenizer=custom_tokenizer, max_features=3000)
+X_cust = vectorizer_custom.fit_transform(df['speech'])
+
+X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X_cust, y, test_size=0.2, random_state=26,stratify=y)
+
+svm_custom = SVC(kernel='linear', random_state=26)
+svm_custom.fit(X_train_c, y_train_c)
+svm_preds_c = svm_custom.predict(X_test_c)
+print("\nPart (e): SVM (Custom Tokenizer) Classification Report:\n", classification_report(y_test_c, svm_preds_c))
