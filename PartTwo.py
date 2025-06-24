@@ -1,4 +1,7 @@
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+
 
 df = pd.read_csv("p2_texts/hansard40000.csv")
 
@@ -10,3 +13,20 @@ top_parties = df['party'].value_counts().drop('Speaker').nlargest(4).index.tolis
 df = df[df['party'].isin(top_parties)]
 
 #remove rows where 'speech_class' not speech
+df = df[df['speech_class'] == 'Speech']
+
+#remove rows where text in speech less than 1000
+df = df[df['speech'].str.len() >= 1000]
+
+print(df.shape)
+
+
+#Vectorising the speeches
+vectorizer = TfidfVectorizer(stop_words='english', max_features=3000)
+X = vectorizer.fit_transform(df['speech'])
+y = df['party']
+
+#splitting data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=26, stratify=y)
+
+#training randomforest
