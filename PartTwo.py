@@ -1,6 +1,8 @@
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import f1_score, classification_report
 
 
 df = pd.read_csv("p2_texts/hansard40000.csv")
@@ -29,4 +31,9 @@ y = df['party']
 #splitting data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=26, stratify=y)
 
-#training randomforest
+#training random forest
+rf = RandomForestClassifier(n_estimators=300,random_state=26)
+rf.fit(X_train, y_train)
+rf_preds = rf.predict(X_test)
+print("Random Forest F1 score:", f1_score(y_test, rf_preds, average='macro'))
+print("Random Forest Classification Report:\n", classification_report(y_test, rf_preds))
