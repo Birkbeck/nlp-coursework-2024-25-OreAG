@@ -1,6 +1,7 @@
 Answers to the text questions go here:
 
 
+Part 1 -
 When is the Flesch Kincaid score *not* a valid, robust or reliable estimator of 4
 text difficulty? Give two conditions. (Text answer, 200 words maximum).
 
@@ -27,3 +28,13 @@ Collins-Thompson,K, 2014. Computational assessment og text readability:A survey 
 ITL- International Journal of Applied Linguistics, 165(20, pp.97-135
 
 Dubay, WH 2004. The Principles of Readability. Costa Mesa, CA:Impact Information
+
+
+Part 2-
+Explain your tokenizer function and discuss its performance
+
+Firstly, the custom tokenizer turns the text into lowercase. It then strips away punctuations and numbers. Then it
+uses a regex to keep only alphabetic words that have a minimum of three characters. This helps it reduce the noise so
+it can focus on more meaningful tokens. Using this approach also improves generalisation by filtering out very short or
+uncommon terms. The result of this is a strong macro average F1 score(within the 3000 feature cap), therefore striking
+a good balance between accuracy and efficiency.
