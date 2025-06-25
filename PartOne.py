@@ -13,7 +13,7 @@ import math
 from collections import Counter
 
 
-nltk.download('punkt')
+nltk.download('punkt_tab')
 nltk.download('cmudict')
 
 cmu_dict = cmudict.dict()
@@ -85,7 +85,7 @@ def get_ttrs(df):
 
 
 def get_fks(df):
-    return {row["title"]: fk_level(row["text"]) for _, row in df.iterrows()}
+    return {row["title"]: fk_level(row["text"], cmu_dict) for _, row in df.iterrows()}
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     print(df.head())
     print(get_ttrs(df))
     print(get_fks(df))
-    df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
+    df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
     print(adjective_counts(df.loc[0, "parsed"]))
 
     for i, row in df.iterrows():
